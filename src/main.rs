@@ -1,7 +1,9 @@
-mod io_utils;
+#![feature(iter_advance_by)]
+
+mod d1;
+pub mod io_utils;
+use d1::run;
 
 fn main() {
-    let lines = io_utils::read_file_lines("test.txt").unwrap();
-    let v = lines.map(|l| l.unwrap()).collect::<Vec<String>>();
-    println!("{:?}", v);
+    run();
 }
