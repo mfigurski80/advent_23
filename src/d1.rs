@@ -40,24 +40,19 @@ fn get_digits(line: String) -> Vec<char> {
         match digit_res {
             Some(digit) => {
                 digits.push(format!("{}", digit).parse::<char>().unwrap());
-                let len = STR_DIGITS[digit].len();
-                window = window[len..].to_string();
-                window.push_str(iterator.clone().take(len).collect::<String>().as_str());
-                let _ = iterator.advance_by(len);
             }
             None => {
                 // try first char is normal digit?
                 let ch = window.chars().next().unwrap();
-                match ch.is_digit(10) {
-                    true => digits.push(ch),
-                    false => {}
-                }
-                window = window[1..].to_string();
-                let next_char = iterator.next();
-                if !next_char.is_none() {
-                    window.push(next_char.unwrap());
+                if ch.is_digit(10) {
+                    digits.push(ch);
                 }
             }
+        }
+        window = window[1..].to_string();
+        let next_char = iterator.next();
+        if !next_char.is_none() {
+            window.push(next_char.unwrap());
         }
     }
     digits
