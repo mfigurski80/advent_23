@@ -1,9 +1,10 @@
 #![feature(iter_advance_by)]
+#![allow(dead_code)]
 
 mod d1;
+mod d2;
 pub mod io_utils;
-use d1::run;
 
 fn main() {
-    run();
+    d2::run();
 }
