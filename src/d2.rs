@@ -5,22 +5,17 @@ type Game = (u32, u32, u32);
 const MAX_GAME: Game = (12, 13, 14);
 
 pub fn run() {
-    let lines = io_utils::read_file_lines("inputs/d2-example.txt").unwrap();
+    let lines = io_utils::read_file_lines("inputs/d2.txt").unwrap();
 
-    let mut id_sum = 0;
-    'outer: for line in lines {
-        let (id, games_str) = match_id(&line);
+    let mut power_sum = 0;
+    for line in lines {
+        let (_, games_str) = match_id(&line);
         let games = match_games(games_str);
-        // check if all games are less than MAX_GAME
-        for game in games {
-            if game.0 > MAX_GAME.0 || game.1 > MAX_GAME.1 || game.2 > MAX_GAME.2 {
-                println!("Invalid game {}: {:?}", id, game);
-                continue 'outer;
-            }
-        }
-        id_sum += id;
+        // get max of all games
+        let max = games_max(games);
+        power_sum += game_power(max);
     }
-    println!("Sum of valid ids: {}", id_sum);
+    println!("Sum of max games power: {}", power_sum);
 }
 
 fn match_id(line: &str) -> (i32, &str) {
