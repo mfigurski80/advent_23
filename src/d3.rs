@@ -1,7 +1,7 @@
 use crate::io_utils;
 
 pub fn run() {
-    let lines = io_utils::read_file_lines("inputs/d3-example.txt").unwrap();
+    let lines = io_utils::read_file_lines("inputs/d3.txt").unwrap();
     let map_2d = lines.collect::<Vec<String>>();
     let ent_map = map_2d
         .iter()
@@ -29,6 +29,9 @@ pub fn run() {
     });
     let mut tot_sum = 0;
     for (row, col, part) in engine_parts {
+        if part != '*' {
+            continue;
+        }
         let adj_nums = filter_adjacent_numbers(ent_map[row].clone(), col);
         let adj_nums = (row != 0)
             .then_some(adj_nums.chain(filter_adjacent_numbers(ent_map[row - 1].clone(), col)))
@@ -39,7 +42,10 @@ pub fn run() {
             .into_iter()
             .flatten()
             .collect::<Vec<(usize, i32)>>();
-        let sum = adj_nums.iter().map(|(_, val)| val).sum::<i32>();
+        if adj_nums.len() != 2 {
+            continue;
+        }
+        let sum = adj_nums.iter().map(|(_, n)| n).fold(1, |acc, n| acc * n);
         tot_sum += sum;
 
         println!("Part {} [Sum {}]: {:?}", part, sum, adj_nums);
