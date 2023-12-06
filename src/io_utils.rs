@@ -21,8 +21,7 @@ pub fn read_file_sections(path: &str) -> Result<impl Iterator<Item = String>, st
         .lines()
         .batching(|lines| {
             let mut section = String::new();
-            for line in lines.by_ref() {
-                let line = line.unwrap();
+            for line in lines.by_ref().map_while(Result::ok) {
                 if line.is_empty() {
                     return Some(section.trim().to_string());
                 } else {

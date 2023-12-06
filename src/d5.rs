@@ -1,24 +1,30 @@
 use crate::io_utils;
+use crate::range_utils as rng;
 use std::ops::Range;
 
 pub fn run() {
-    let mut sects = io_utils::read_file_sections("inputs/d5-example.txt").unwrap();
+    let mut sects = io_utils::read_file_sections("inputs/d5.txt").unwrap();
     let mut seeds = parse_seeds(sects.next().unwrap());
     println!("FOUND SEEDS: {:?}", seeds);
     for offset_map in sects.map(parse_offset_map) {
-        // println!("FOUND OFFSET MAP: {:?}", offset_map);
-        seeds = apply_offset_map(&offset_map, &seeds);
-        println!("APPLIED OFFSET MAP: {:?}", seeds);
+        println!("FOUND OFFSET MAP: {:?}", offset_map);
+        seeds = apply_offset_map(&offset_map, seeds);
+        println!("NEW SEEDS: {:?}", seeds);
     }
-    println!("Final Min: {}", seeds.iter().min().unwrap());
+    let min = seeds.iter().map(|s| s.start).min().unwrap();
+    println!("MIN: {}", min);
 }
 
-fn parse_seeds(line: String) -> Vec<usize> {
+type Seeds = Vec<Range<usize>>;
+
+fn parse_seeds(line: String) -> Seeds {
     line.split(": ")
         .nth(1)
         .unwrap()
         .split(" ")
         .map(|s| s.parse::<usize>().unwrap())
+        .array_chunks::<2>()
+        .map(|a| a[0]..a[0] + a[1])
         .collect()
 }
 
@@ -31,7 +37,7 @@ struct RangeOffset {
 type OffsetMap = Vec<RangeOffset>;
 
 fn parse_offset_map(section: String) -> OffsetMap {
-    let m: OffsetMap = section
+    section
         .lines()
         .skip(1)
         .map(|line| {
@@ -47,23 +53,32 @@ fn parse_offset_map(section: String) -> OffsetMap {
             };
             offset
         })
-        .collect();
-    m
+        .collect()
 }
 
-fn apply_offset_map(map: &OffsetMap, seeds: &Vec<usize>) -> Vec<usize> {
-    // return modified seeds
-    let mut new_seeds = seeds.clone();
-    for offset in map {
-        for (i, seed) in seeds.iter().enumerate() {
-            if offset.range.contains(&seed) {
-                println!(
-                    "Offsetting seed {} by {} (in {:?})",
-                    seed, offset.offset, offset.range
-                );
-                new_seeds[i] = (*seed as isize + offset.offset) as usize;
+/// Return modified seeds
+fn apply_offset_map(map: &OffsetMap, seeds: Seeds) -> Seeds {
+    let mut seeds = seeds;
+    let mut new_seeds: Seeds = vec![];
+    for offset in map.iter() {
+        let mut leftovers: Seeds = vec![];
+        for seed in seeds.iter() {
+            // left & right is leftover, center is mapped
+            let (left, center, right) = rng::partition_on_range(seed.clone(), &offset.range);
+            if let Some(left) = left {
+                leftovers.push(left);
             }
+            if let Some(right) = right {
+                leftovers.push(right);
+            }
+            if center.is_none() {
+                continue; // no overlap, no change
+            }
+            let new_center = rng::transpose_uns(&center.unwrap(), offset.offset);
+            new_seeds.push(new_center);
         }
+        seeds = leftovers;
     }
-    new_seeds
+    new_seeds.extend(seeds);
+    return new_seeds;
 }
