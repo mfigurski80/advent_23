@@ -1,11 +1,16 @@
 use crate::io_utils;
 
 pub fn run() {
-    let lines = io_utils::read_file_lines("inputs/d7-example.txt").unwrap();
+    let lines = io_utils::read_file_lines("inputs/d7.txt").unwrap();
     let mut hands = lines.map(parse_hand).collect::<Vec<_>>();
-    for hand in &mut hands {
-        println!("{:?}", hand);
-    }
+    hands.sort_unstable_by_key(|h| h.value);
+    let bids = hands
+        .iter()
+        .enumerate()
+        .map(|(i, h)| h.bet * (i + 1))
+        .collect::<Vec<_>>();
+    println!("bids: {:?}", bids);
+    println!("total: {}", bids.iter().sum::<usize>());
 }
 
 #[derive(Debug)]
@@ -18,13 +23,13 @@ struct Hand {
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 enum HandType {
-    HighCard = 0b001,
-    Pair = 0b010,
-    TwoPair = 0b011,
-    ThreeOfAKind = 0b100,
-    FullHouse = 0b101,
-    FourOfAKind = 0b110,
     FiveOfAKind = 0b111,
+    FourOfAKind = 0b110,
+    FullHouse = 0b101,
+    ThreeOfAKind = 0b100,
+    TwoPair = 0b011,
+    OnePair = 0b010,
+    HighCard = 0b001,
 }
 
 fn parse_hand(line: String) -> Hand {
@@ -38,7 +43,11 @@ fn parse_hand(line: String) -> Hand {
     let bet = sp.next().unwrap().parse::<usize>().unwrap();
     let hand_type = parse_hand_type(cards.clone());
     // top three bits are hand type
-    let value: u64 = (hand_type as u64) << 52;
+    let mut value: u64 = (hand_type as u64) << (64 - 3);
+    // card vals are each 4 bits -- 20 bits total
+    cards.iter().enumerate().for_each(|(i, &c)| {
+        value |= (c as u64) << (50 - (i * 4));
+    });
 
     Hand {
         cards: cards.try_into().unwrap(),
@@ -83,7 +92,7 @@ fn parse_hand_type(cards: Vec<u8>) -> HandType {
         [3, 2] => HandType::FullHouse,
         [3, 1] => HandType::ThreeOfAKind,
         [2, 2] => HandType::TwoPair,
-        [2, 1] => HandType::Pair,
+        [2, 1] => HandType::OnePair,
         [1, 1] => HandType::HighCard,
         _ => panic!("invalid card counts: {:?}", count),
     }
