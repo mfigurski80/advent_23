@@ -8,9 +8,10 @@ mod d2;
 mod d3;
 mod d4;
 mod d5;
+mod d7;
 pub mod io_utils;
 pub mod range_utils;
 
 fn main() {
-    d5::run();
+    d7::run();
 }
