@@ -4,6 +4,9 @@ pub fn run() {
     let lines = io_utils::read_file_lines("inputs/d7.txt").unwrap();
     let mut hands = lines.map(parse_hand).collect::<Vec<_>>();
     hands.sort_unstable_by_key(|h| h.value);
+    for hand in hands.iter() {
+        println!("{:?}", hand);
+    }
     let bids = hands
         .iter()
         .enumerate()
@@ -62,7 +65,7 @@ fn parse_card_value(c: char) -> u8 {
         'A' => 14,
         'K' => 13,
         'Q' => 12,
-        'J' => 11,
+        'J' => 0,
         'T' => 10,
         _ => c.to_digit(10).unwrap() as u8,
     }
@@ -77,8 +80,11 @@ fn parse_hand_type(cards: Vec<u8>) -> HandType {
             counts
         })
         .to_vec();
+    // separate joker, in 0 place
+    let joker_count = count[0];
+    count[0] = 0;
     count.sort_unstable();
-    let top_2: [u8; 2] = count
+    let mut top_2: [u8; 2] = count
         .iter()
         .rev()
         .take(2)
@@ -86,6 +92,7 @@ fn parse_hand_type(cards: Vec<u8>) -> HandType {
         .collect::<Vec<_>>()
         .try_into()
         .unwrap();
+    top_2[0] += joker_count;
     match top_2 {
         [5, 0] => HandType::FiveOfAKind,
         [4, 1] => HandType::FourOfAKind,
