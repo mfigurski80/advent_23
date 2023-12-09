@@ -2,43 +2,41 @@ use crate::io_utils;
 use std::collections::HashMap;
 
 pub fn run() {
-    let mut lines = io_utils::read_file_lines("inputs/d8-example.txt").unwrap();
+    let mut lines = io_utils::read_file_lines("inputs/d8.txt").unwrap();
     let path = parse_path(lines.next().unwrap());
     println!("Found Path: {:?}", path);
     let mut nodes: HashMap<String, [String; 2]> = HashMap::new();
-    // let mut start_nodes: Vec<String> = Vec::new();
+    let mut cur_nodes: Vec<String> = Vec::new();
     for l in lines {
         let (id, left, right) = parse_node(l);
         nodes.insert(id.clone(), [left, right]);
-        // if is_node_start(&id) {
-        // start_nodes.push(id);
-        // }
+        if is_node_start(&id) {
+            cur_nodes.push(id);
+        }
     }
-    println!("Found Nodes: {:?}", nodes);
+    println!("Nodes: {:?}", nodes);
     // follow path infinitely
     let mut steps = 0;
-    let mut current_node = "AAA".to_string();
     for dir in path.iter().cycle() {
-        if current_node == "ZZZ" {
-            println!("Reached ZZZ");
+        println!("Step {}, Nodes: {:?}", steps, cur_nodes);
+        steps += 1;
+        let dir_i: usize = *dir as usize;
+        cur_nodes.iter_mut().for_each(|n| {
+            let children = nodes.get(n).unwrap();
+            let next_node = children[dir_i].to_string();
+            *n = next_node;
+        });
+        if cur_nodes.iter().all(|n| is_node_end(n)) {
             break;
         }
-        steps += 1;
-        let children = nodes.get(&current_node).unwrap();
-        let next_node = match dir {
-            DIR::L => children[0].to_string(),
-            DIR::R => children[1].to_string(),
-        };
-        println!("{} -> {}", current_node, next_node);
-        current_node = next_node;
     }
     println!("Steps: {}", steps);
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 enum DIR {
-    R = 0,
-    L = 1,
+    L = 0,
+    R = 1,
 }
 
 fn parse_path(line: String) -> Vec<DIR> {
@@ -54,7 +52,7 @@ fn parse_path(line: String) -> Vec<DIR> {
 use regex::Regex;
 
 fn parse_node(line: String) -> (String, String, String) {
-    let re = Regex::new("([A-Z]+)").unwrap();
+    let re = Regex::new("([A-Z0-9]{3})").unwrap();
     let matches = re
         .find_iter(&line)
         .take(3)
