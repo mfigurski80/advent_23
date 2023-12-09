@@ -1,12 +1,9 @@
-struct Node<T> {
-    id: usize,
-    children: Option<Box<Vec<Node>>>,
-    data: T,
-}
+use std::collections::HashMap;
 
-fn do_dfs<T>(node: &Node<T>, action: &Fn(&Node<T>)) {
-    for child in node.children.iter() {
-        action(child);
-        do_dfs(child);
-    }
+type NodeMap<T> = HashMap<String, T>;
+
+struct BinaryNode<D> {
+    id: String,
+    children: [String; 2],
+    data: D,
 }
