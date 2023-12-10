@@ -6,27 +6,27 @@ pub fn run() {
     let path = parse_path(lines.next().unwrap());
     println!("Found Path: {:?}", path);
     let mut nodes: HashMap<String, [String; 2]> = HashMap::new();
-    let mut cur_nodes: Vec<String> = Vec::new();
+    let mut start_nodes: Vec<String> = Vec::new();
     for l in lines {
         let (id, left, right) = parse_node(l);
         nodes.insert(id.clone(), [left, right]);
         if is_node_start(&id) {
-            cur_nodes.push(id);
+            start_nodes.push(id);
         }
     }
     println!("Nodes: {:?}", nodes);
     // follow path infinitely
     let mut steps = 0;
     for dir in path.iter().cycle() {
-        println!("Step {}, Nodes: {:?}", steps, cur_nodes);
+        println!("Step {}, Nodes: {:?}", steps, start_nodes);
         steps += 1;
         let dir_i: usize = *dir as usize;
-        cur_nodes.iter_mut().for_each(|n| {
+        start_nodes.iter_mut().for_each(|n| {
             let children = nodes.get(n).unwrap();
             let next_node = children[dir_i].to_string();
             *n = next_node;
         });
-        if cur_nodes.iter().all(|n| is_node_end(n)) {
+        if start_nodes.iter().all(|n| is_node_end(n)) {
             break;
         }
     }
