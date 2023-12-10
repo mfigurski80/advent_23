@@ -7,16 +7,26 @@ use crate::io_utils;
 // [3, 2]
 // [6, 3, 1]
 // [10, 4, 1, 0]
+// ----- reverse case? ----
+// [10]
+// [6, -4]
+// [3, -3, 1]
+// [1, -2, 1, 0]
+// [0, -1,  1, 0]
 
 pub fn run() {
     let lines = io_utils::read_file_lines("inputs/d9.txt").unwrap();
     let mut next_sum = 0;
     for l in lines {
-        let nums_it = l.split(" ").map(|s| s.parse::<i32>().unwrap());
+        let nums_it = l
+            .split(" ")
+            .map(|s| s.parse::<i32>().unwrap())
+            .collect::<Vec<_>>()
+            .into_iter()
+            .rev();
         let mut stack = DerivativeStack::new();
         for n in nums_it {
             advance_stack(&mut stack, n);
-            // println!("{:?}", stack);
         }
         let next = predict_next(&stack);
         println!("next: {}", next);
