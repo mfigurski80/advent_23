@@ -3,22 +3,19 @@ use std::collections::HashSet;
 use std::collections::VecDeque;
 
 pub fn run() {
-    let lines = io_utils::read_file_lines("inputs/d10.txt").unwrap();
+    let lines = io_utils::read_file_lines("inputs/d10-example.txt").unwrap();
     let map2d: Vec<Vec<TILE>> = lines
         .into_iter()
-        .map(|mut line| {
-            line.insert(0, '.');
-            line.push('.');
-            line
-        })
         .map(|line| line.bytes().map(match_tile).collect())
         .collect();
-    // println!("Map: {:?}", map2d);
     let start_pos = find_tile(&map2d, TILE::START).unwrap();
     let entity_set = build_entity_from(&map2d, tile_edges, start_pos);
 
     println!("Seen set: {:?}", entity_set);
     println!("Seen set size / 2: {:?}", entity_set.len() / 2);
+
+    let internal_volume = find_entity_internal_volume(map2d, &entity_set);
+    println!("Internal volume: {:?}", internal_volume);
 }
 
 type Point = (usize, usize);
@@ -136,4 +133,49 @@ fn build_entity_from(
         }
     }
     seen_set
+}
+
+use std::collections::HashMap;
+
+fn find_entity_internal_volume(map2d: Vec<Vec<TILE>>, entity: &HashSet<Point>) -> usize {
+    // group by x
+    println!("Entity: {:?}", entity);
+    let mut groups = HashMap::new();
+    entity
+        .iter()
+        .filter(|p| map2d[p.0][p.1] != TILE::HORIZONTAL)
+        .for_each(|(x, y)| {
+            groups.entry(x).or_insert(vec![]).push(*y);
+        });
+    groups.iter_mut().for_each(|(_, group)| {
+        group.sort_unstable();
+    });
+    println!("Groups: {:?}", groups);
+    let volumes = groups
+        .iter()
+        .map(|(x, group)| {
+            // sort group
+            let filtered = group.iter().fold(VecDeque::new(), |mut acc, y| {
+                if acc.is_empty() || acc.len() % 2 == 1 || acc.back().unwrap() + 1 < *y {
+                    acc.push_back(*y);
+                } else {
+                    acc.pop_back();
+                    acc.push_back(*y);
+                }
+                acc
+            });
+            println!("[{}] Group: {:?} -> {:?}", x, group, filtered);
+            // .array_chunks::<2>()
+            // .map(|chunk| {
+            // let min = *chunk[0];
+            // let max = *chunk[1];
+            // max - min - 1
+            // })
+            // .sum::<usize>()
+            0
+        })
+        .collect::<Vec<_>>();
+    println!("Volumes: {:?}", volumes);
+    println!("Border Count: {:?}", entity.len());
+    1 + volumes.iter().sum::<usize>() - entity.len()
 }

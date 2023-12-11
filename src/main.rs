@@ -1,5 +1,6 @@
 #![feature(iter_advance_by)]
 #![feature(iter_array_chunks)]
+#![feature(slice_group_by)]
 #![allow(dead_code)]
 extern crate regex;
 
