@@ -15,43 +15,10 @@ pub fn run() {
         .collect();
     // println!("Map: {:?}", map2d);
     let start_pos = find_tile(&map2d, TILE::START).unwrap();
-    println!("Start pos: {:?}", start_pos);
-    let mut all_edges: VecDeque<Point> = VecDeque::new();
-    all_edges.push_back(start_pos);
-    let mut seen_set: HashSet<(usize, usize)> = HashSet::new();
-    seen_set.insert(start_pos);
+    let entity_set = build_entity_from(&map2d, tile_edges, start_pos);
 
-    while let Some(point) = all_edges.pop_front() {
-        let tile = map2d[point.0][point.1];
-        // println!("Visiting {:?} {:?}", point, tile);
-        let edges = tile_edges(tile);
-        for edge in edges {
-            let next_point = match edge {
-                TILEEDGE::UP => (point.0 - 1, point.1),
-                TILEEDGE::DOWN => (point.0 + 1, point.1),
-                TILEEDGE::LEFT => (point.0, point.1 - 1),
-                TILEEDGE::RIGHT => (point.0, point.1 + 1),
-            };
-            if seen_set.contains(&next_point) {
-                continue;
-            }
-            if tile == TILE::START {
-                let next_tile = map2d[next_point.0][next_point.1];
-                let next_edges: Vec<TILEEDGE> = tile_edges(next_tile)
-                    .iter()
-                    .map(corresponding_edge)
-                    .collect();
-                if !next_edges.contains(&edge) {
-                    continue;
-                }
-            }
-            all_edges.push_front(next_point);
-            seen_set.insert(next_point);
-        }
-    }
-
-    println!("Seen set: {:?}", seen_set);
-    println!("Seen set size: {:?}", seen_set.len());
+    println!("Seen set: {:?}", entity_set);
+    println!("Seen set size / 2: {:?}", entity_set.len() / 2);
 }
 
 type Point = (usize, usize);
@@ -124,4 +91,49 @@ fn corresponding_edge(edge: &TILEEDGE) -> TILEEDGE {
         TILEEDGE::LEFT => TILEEDGE::RIGHT,
         TILEEDGE::RIGHT => TILEEDGE::LEFT,
     }
+}
+
+/// Somewhat complex func to build an entity (collection
+/// of tiles) from a map2d, given a starting point and
+/// a rule to determine how entity tiles are connected.
+fn build_entity_from(
+    map2d: &Vec<Vec<TILE>>,
+    entity_rules: fn(TILE) -> Vec<TILEEDGE>,
+    start_pos: Point,
+) -> HashSet<Point> {
+    let mut all_edges: VecDeque<Point> = VecDeque::new();
+    let mut seen_set: HashSet<Point> = HashSet::new();
+    all_edges.push_back(start_pos);
+    seen_set.insert(start_pos);
+    println!("Start pos: {:?}", start_pos);
+
+    while let Some(point) = all_edges.pop_front() {
+        let tile = map2d[point.0][point.1];
+        // println!("Visiting {:?} {:?}", point, tile);
+        let edges = entity_rules(tile);
+        for edge in edges {
+            let next_point = match edge {
+                TILEEDGE::UP => (point.0 - 1, point.1),
+                TILEEDGE::DOWN => (point.0 + 1, point.1),
+                TILEEDGE::LEFT => (point.0, point.1 - 1),
+                TILEEDGE::RIGHT => (point.0, point.1 + 1),
+            };
+            if seen_set.contains(&next_point) {
+                continue;
+            }
+            if tile == TILE::START {
+                let next_tile = map2d[next_point.0][next_point.1];
+                let next_edges: Vec<TILEEDGE> = entity_rules(next_tile)
+                    .iter()
+                    .map(corresponding_edge)
+                    .collect();
+                if !next_edges.contains(&edge) {
+                    continue;
+                }
+            }
+            all_edges.push_front(next_point);
+            seen_set.insert(next_point);
+        }
+    }
+    seen_set
 }
