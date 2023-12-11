@@ -7,4 +7,6 @@ edition = "2021"
 
 [dependencies]
 itertools = "0.12.0"
+num-bigint = "0.4.4"
+num-traits = "0.2.17"
 regex = "1.10.2"
