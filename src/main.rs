@@ -6,6 +6,7 @@ extern crate regex;
 
 mod d1;
 mod d10;
+mod d11;
 mod d2;
 mod d3;
 mod d4;
@@ -18,5 +19,5 @@ pub mod io_utils;
 pub mod range_utils;
 
 fn main() {
-    d10::run();
+    d11::run();
 }
