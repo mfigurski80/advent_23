@@ -1,4 +1,5 @@
 use crate::io_utils;
+use crate::map_utils;
 
 pub fn run() {
     let map_iter = io_utils::read_file_sections("inputs/d13.txt").unwrap();
@@ -15,14 +16,11 @@ pub fn run() {
             row_matches += fold_index;
             continue;
         }
-        let transposed = transpose_map(
+        let transposed = map_utils::transpose(
             map.split('\n')
-                .map(|r| r.chars().collect::<Vec<char>>())
-                .collect::<Vec<Vec<char>>>(),
-        )
-        .iter()
-        .map(|r| r.iter().collect::<String>())
-        .collect::<Vec<String>>();
+                .map(|r| r.to_string())
+                .collect::<Vec<String>>(),
+        );
         let col_hashes: Vec<u64> = transposed
             .iter()
             .map(|col| hash_row(col.to_string()))
@@ -69,16 +67,4 @@ fn find_fold_index(row_hashes: Vec<u64>) -> Option<usize> {
         }
     }
     None
-}
-
-fn transpose_map<T: Copy>(map: Vec<Vec<T>>) -> Vec<Vec<T>> {
-    let mut transposed = Vec::new();
-    for i in 0..map[0].len() {
-        let mut row = Vec::new();
-        for j in 0..map.len() {
-            row.push(map[j][i]);
-        }
-        transposed.push(row);
-    }
-    transposed
 }
