@@ -32,7 +32,7 @@ pub fn read_file_sections(path: &str) -> Result<impl Iterator<Item = String>, st
             if section.is_empty() {
                 None
             } else {
-                Some(section)
+                Some(section.trim().to_string())
             }
         })
         .filter(|section| !section.is_empty());
