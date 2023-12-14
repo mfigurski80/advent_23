@@ -44,7 +44,6 @@ fn record_match_runs(record: &String, runs: &Vec<usize>) -> bool {
 use itertools::Itertools;
 
 fn get_all_flip_combinations(record: String, num_to_flip: usize) -> impl Iterator<Item = String> {
-    let original_record = record.clone();
     let unknown = record
         .chars()
         .enumerate()
@@ -55,7 +54,7 @@ fn get_all_flip_combinations(record: String, num_to_flip: usize) -> impl Iterato
         panic!("Not enough unknowns to flip");
     }
     let it = unknown.iter().combinations(num_to_flip).map(|perm| {
-        let mut rec = original_record.clone();
+        let mut rec = record.clone();
         for i in perm {
             rec.replace_range(*i..*i + 1, "#");
         }
@@ -144,5 +143,22 @@ fn get_all_flip_combinations(record: String, num_to_flip: usize) -> impl Iterato
  *     .....###..### => no
  *   This is totally reasonable. Fuck all this permutation stuff, just operate on single line
  *   Might be hard to memoize though => not really being reduced into repeating subproblems well
+ */
+
+/*
+ * Memoization??
+ * Could be done by generating our own permutations and memoizing answers, ie splitting
+ * `get_allflip_combinations` into a recursive combs func and a 'is_valid_combination'.
+ * Then, with 3-comb [1,2,5,6,10]:
+ * 1:
+ *   2: 5: bad, 6: bad, 10: bad
+ *   5: 6: bad, 10: good
+ *   6: 10: good
+ * 2:
+ *   5: MEMO (bad, good)
+ *   6: MEMO (good)
+ * 5:
+ *   6: MEMO (good)
+ *
  *
  */
