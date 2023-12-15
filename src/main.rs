@@ -12,6 +12,7 @@ mod d11;
 mod d12;
 mod d13;
 mod d14;
+mod d15;
 mod d2;
 mod d3;
 mod d4;
@@ -25,5 +26,5 @@ pub mod map_utils;
 pub mod range_utils;
 
 fn main() {
-    d14::run();
+    d15::run();
 }
