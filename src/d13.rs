@@ -16,7 +16,7 @@ pub fn run() {
             row_matches += fold_index;
             continue;
         }
-        let transposed = map_utils::rotate(
+        let transposed = map_utils::rotate_r(
             map.split('\n')
                 .map(|r| r.to_string())
                 .collect::<Vec<String>>(),
