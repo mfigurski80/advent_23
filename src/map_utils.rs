@@ -21,6 +21,47 @@ pub fn rotate_l(map: Map) -> Map {
         .collect()
 }
 
+pub fn transpose(map: Map) -> Map {
+    let mut transposed = Vec::new();
+    let row_len = map.len();
+    for i in 0..map[0].len() {
+        let mut row = String::with_capacity(row_len);
+        for j in 0..row_len {
+            row.push(map[j].as_bytes()[i] as char);
+        }
+        transposed.push(row);
+    }
+    transposed
+}
+
+pub type Point = (usize, usize);
+
+pub trait MapMethods {
+    fn print(&self);
+    fn get_point(&self, point: Point) -> Option<char>;
+    fn set_point(&mut self, point: Point, c: char);
+}
+
+impl MapMethods for Map {
+    fn print(&self) {
+        self.iter()
+            .enumerate()
+            .for_each(|(i, line)| println!("{:>2}: {}", i, line));
+    }
+    fn get_point(&self, point: Point) -> Option<char> {
+        self.get(point.0)
+            .unwrap_or(&"".to_owned())
+            .chars()
+            .nth(point.1)
+    }
+
+    fn set_point(&mut self, point: Point, c: char) {
+        let mut row = self.get(point.0).unwrap().to_string();
+        row.replace_range(point.1..=point.1, &c.to_string());
+        self[point.0] = row;
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -42,5 +83,15 @@ mod tests {
         let map = rotate_r(vec!["abc".to_string(), "def".to_string()]);
         let rotated = rotate_l(map);
         assert_eq!(rotated, vec!["abc".to_string(), "def".to_string()]);
+    }
+
+    #[test]
+    fn test_transpose() {
+        let map = vec!["abc".to_string(), "def".to_string()];
+        let transposed = transpose(map);
+        assert_eq!(
+            transposed,
+            vec!["ad".to_string(), "be".to_string(), "cf".to_string()]
+        );
     }
 }
