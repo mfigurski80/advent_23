@@ -19,25 +19,34 @@ fn is_horizontal(direction: Direction) -> bool {
 }
 
 fn find_best_beam_start(map: &mp::Map) -> (Point, Direction) {
-    let width = map[0].len();
-    let height = map.len();
-    let height_iter = (0..height).flat_map(|i| [((i, 0), (1, 0)), ((i, width - 1), (-1, 0))]);
-    let width_iter = (0..width).flat_map(|j| [((0, j), (0, 1)), ((height - 1, j), (0, -1))]);
-    let hits = height_iter
-        .clone()
-        .chain(width_iter.clone())
-        .map(|(start, direction)| find_beam_hits(start, direction, map))
-        .map(|hits| count_beam_hits(&hits))
+    let entries_iter = iter_beam_entry_points(map[0].len(), map.len());
+    let hits = entries_iter
+        .map(|(start, direction)| {
+            print!("beaming from {:?}", start);
+            find_beam_hits(start, direction, map)
+        })
+        .map(|hits| {
+            let count = count_beam_hits(&hits);
+            println!(": {}", count);
+            count
+        })
         .collect::<Vec<_>>();
-    println!("hits: {:?}", hits);
     let best = hits
         .iter()
         .enumerate()
         .max_by_key(|(_, &hits)| hits)
         .unwrap();
-    let best_start = height_iter.chain(width_iter).nth(best.0).unwrap();
+    // let best_start = entries_iter.nth(best.0).unwrap();
     println!("best hits: {:?}", best.1);
-    return best_start;
+    // best_start
+    ((0, 0), (0, 0))
+}
+
+/// Find all beam entry points for a map
+fn iter_beam_entry_points(width: usize, height: usize) -> impl Iterator<Item = (Point, Direction)> {
+    let height_iter = (0..height).flat_map(move |i| [((i, 0), (1, 0)), ((i, width - 1), (-1, 0))]);
+    let width_iter = (0..width).flat_map(move |j| [((0, j), (0, 1)), ((height - 1, j), (0, -1))]);
+    height_iter.chain(width_iter)
 }
 
 /// Find all beam hits starting from `start` in `direction` on `map`.
@@ -49,6 +58,7 @@ fn find_beam_hits(start: Point, direction: Direction, map: &mp::Map) -> mp::Map 
         .collect::<mp::Map>();
     let mut h_hits = v_hits.clone();
     // note we maintain separate v/h hit maps for caching
+    // are north/south hits equivalent? yes, going back is guaranteed to hit the same tiles
     send_beam(start, direction, map, &mut v_hits, &mut h_hits);
     append_map(&mut v_hits, h_hits);
     v_hits
@@ -62,7 +72,6 @@ fn send_beam(
     v_hits: &mut mp::Map,
     h_hits: &mut mp::Map,
 ) {
-    println!("send_beam: {:?} {:?}", start, direction);
     let mut cur_point = start;
     let mut cur_dir = direction;
     loop {
@@ -112,7 +121,7 @@ fn send_beam(
                 send_beam(cur_point, (0, -1), map, v_hits, h_hits);
                 cur_dir = (0, 1);
             }
-            _ => panic!("Unknown tile: {}", tile),
+            other => panic!("Unknown tile: {}", other),
         };
     }
 }
